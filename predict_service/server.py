@@ -39,9 +39,9 @@ def predict():
     return result, 200
 
 def get_predict_point(embeddings, p0x, p0y, p0r, p1x, p1y, p1r):
-    max_p0x, max_p0y, max_p1x, max_p1y = get_corners(p0x, p0y, p0r, p1x, p1y, p1r)
+    #max_p0x, max_p0y, max_p1x, max_p1y = get_corners(p0x, p0y, p0r, p1x, p1y, p1r)
     
-    area_embeddings = get_embaddings_of_tiles_in_area(max_p0x, max_p0y, max_p1x, max_p1y)
+    #area_embeddings = get_embaddings_of_tiles_in_area(max_p0x, max_p0y, max_p1x, max_p1y)
     
     id0 = get_tile_id_by_geolocation(p0x, p0y)
     id1 = get_tile_id_by_geolocation(p1x, p1y)
@@ -111,7 +111,7 @@ def get_all_embeddings(csv_file):
             embedding = 'p'
             lat = row['lat']
             lng = row['lng']
-            patch = row['patch']
+            patch = row['path']
             item = (idx, lat, lng, patch, embedding)
             embeddings.append(item)
     return embeddings
