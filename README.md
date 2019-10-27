@@ -9,5 +9,5 @@ Important details for submission:
 
 # Project description
 
-We propose 2  improvements for geolocation accuracy: narrow the area defined with uncertainty and restore missing parts on a recorded track. Our approach is based on unsupervised learning with triplet loss and finding semantically close locations in the latent space.
-(267 symbols)
+We propose 2 improvements for geolocation accuracy: restore missing parts of a recorded track, narrow the uncertainty area around points in the future. Our approach is based on unsupervised learning with triplet loss and finding semantically close locations in the latent space.
+(278 symbols)
