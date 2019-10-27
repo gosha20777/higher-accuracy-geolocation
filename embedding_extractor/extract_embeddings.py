@@ -47,14 +47,13 @@ def get_all_embeddings(model, csv_file):
     with open(csv_file, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            print(row['id'], row['patch'])
-            tile = load_tile(patch)
+            tile = load_tile(row['patch'])
             embedding = extract_embedding_from_tile(model, tile)
-            lat = row['lat']
-            lng = row['lng']
             embedding_pickle_string = pickle.dumps(embedding)
-            item = (row['id'], lat, lng, embedding_pickle_string)
+            
+            item = (row['id'], row['lat'], row['lng'], row['patch'], embedding_pickle_string)
             embeddings.append()
+            print(row['id'], row['patch'])
     return embeddings
 
 def insert_embeddings_into_db(embeddings, host, port, user, password, database):
