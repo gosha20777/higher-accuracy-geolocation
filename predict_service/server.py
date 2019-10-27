@@ -1,8 +1,27 @@
 import flask
-import csv
-import pickle
 from flask import Flask, jsonify, request, abort
 from scipy.interpolate import interp1d
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import imshow
+import seaborn as sns
+sns.set_style("darkgrid")
+from PIL import Image
+from torchvision import transforms
+import torch
+
+import torchvision
+from torch.utils.data.sampler import WeightedRandomSampler
+from tensorboardX import SummaryWriter
+import seaborn as sns
+sns.set_style("darkgrid")
+
+from networks import Loc2Vec
+from datasets import GeoTileInferDataset, get_files_from_path, cleanse_files
+from config import IMG_SIZE
+import csv, pickle
 
 app = flask.Flask(__name__)# define a predict function as an endpoint 
 
@@ -29,7 +48,7 @@ def get_predict_point(embeddings, p0x, p0y, p0r, p1x, p1y, p1r):
     grapf = build_grapf(area_embeddings)
     predict_point = predict_on_tree(id0, id1, grapf)
 
-def predict_point(id0, id1, grapf):
+def predict_on_tree(id0, id1, grapf):
     interpolation_size = 5
     # interpolate from 185175 to 751688
     # These numbers are cherry picked. Once we train for longer, we can remove it
@@ -45,28 +64,18 @@ def predict_point(id0, id1, grapf):
         item = item + t.get_nns_by_vector(linfit(i+1),1)
 
     item = item + [end_index]
-    columns = 8
-    rows = 1
+    id = item[3]
+    return item[3]
 
+def get_tile_id_by_geolocation(x, y):
+    for (idx, lat, lng, patch, embedding) in _embeddings:
+        if lat == x and lng == y:
+            return idx
 
-    w=15
-    h=15
-    fig=plt.figure(figsize=(20,4))
-    plt.title("Interpolation between two locations via embedding")
-    plt.subplots_adjust(left=0.32, bottom=0, right=1.0, top=0.7, wspace=0.02, hspace=0.02)
-    plt.axis('off')
-    for i, index in enumerate(item):
-        img = np.random.randint(10, size=(h,w))
-        fig.add_subplot(rows, columns, i+1)
-        img = Image.open(pd_files.path[index], 'r')
-        data = img.convert('RGB')        
-        t_img = torch.from_numpy(np.asarray(data))
-        t_img_np = t_img.numpy()
-        # plt.title(index)
-        plt.axis('off')
-        plt.imshow(t_img_np)
-
-    plt.show()
+def get_embading_by_id(_idx):
+    for (idx, lat, lng, patch, embedding) in _embeddings:
+        if idx == _idx:
+            return embedding
 
 def get_corners(p0x, p0y, p0r, p1x, p1y, p1r):
     norm1 = l1(p0x+p0r, p0y+p0r, p1x+p1r, p1y+p1r)
@@ -85,15 +94,12 @@ def get_embaddings_of_tiles_in_area(p0x, p0y, p1x, p1y)
             area_embeddings.append(item)
     return area_embeddings
 
-
-
 def l1(p0x, p0y, p1x, p1y):
     return abs(p0x-p1x) + abs(p0y-p1y)
 
 def build_grapf(area_embeddings):
     t = AnnoyIndex(16, metric='euclidean')  # Length of item vector that will be indexed
-    for (idx, embedding) in area_embeddings:
-        t.add_item(idx, embedding)
+    t.load('embeddings.ann')
     return t
 
 def get_all_embeddings(csv_file):
@@ -102,7 +108,7 @@ def get_all_embeddings(csv_file):
         reader = csv.DictReader(csvfile)
         for row in reader:
             idx = row['id']
-            embedding = pickle.loads(row['embedding'])
+            embedding = 'p'
             lat = row['lat']
             lng = row['lng']
             patch = row['patch']
